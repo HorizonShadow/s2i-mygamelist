@@ -17,34 +17,37 @@ FROM openshift/base-centos7
 # RUN yum install -y ... && yum clean all -y
 
 ARG FA_KEY=""
+ENV RBENV_ROOT="/opt/app-root/.rbenv"
+ENV NVM_DIR="/opt/app-root/.nvm"
 RUN yum install -y git-core zlib zlib-devel gcc-c++ patch readline readline-devel \
     libyaml-devel libffi-devel openssl-devel make bzip2 autoconf automake  \
     libtool bison curl sqlite-devel \
     && yum clean all -y
 
 RUN cd
-RUN git clone git://github.com/sstephenson/rbenv.git .rbenv
-ENV PATH="${HOME}/.rbenv/bin:${PATH}"
+RUN git clone git://github.com/sstephenson/rbenv.git /opt/app-root/.rbenv
+ENV PATH="/opt/app-root/.rbenv/bin:${PATH}"
+ENV PATH="/opt/app-root/.rbenv/versions/2.5.3/bin:${PATH}"
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
 RUN exec $SHELL
 
-RUN git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
-ENV PATH="${HOME}/.rbenv/plugins/ruby-build/bin:${PATH}"
+RUN git clone git://github.com/sstephenson/ruby-build.git /opt/app-root/.rbenv/plugins/ruby-build
+ENV PATH="/opt/app-root/.rbenv/plugins/ruby-build/bin:${PATH}"
 RUN exec $SHELL
 RUN rbenv install 2.5.3
 RUN rbenv global 2.5.3
-RUN rbenv exec gem install bundler --no-rdoc --no-ri
-RUN rbenv exec gem update --system
+RUN gem install bundler --no-rdoc --no-ri
+RUN gem update --system
 
+run mkdir /opt/app-root/.nvm
 run curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-run \. .nvm/nvm.sh && nvm install 11.9 
-RUN echo "11.9" > .nvmrc
-ENV PATH="${HOME}/.nvm/versions/node/v11.9.0/bin:${PATH}"
+run \. /opt/app-root/.nvm/nvm.sh && nvm install 11.9 
+RUN echo "11.9" > /opt/app-root/.nvmrc
+ENV PATH="/opt/app-root/.nvm/versions/node/v11.9.0/bin:${PATH}"
 
 run npm install -g yarn
 run npm config set "@fortawesome:registry" https://npm.fontawesome.com/ \
     && npm config set "//npm.fontawesome.com/:_authToken" $FA_KEY
-
 
 # TODO (optional): Copy the builder files into /opt/app-root
 # COPY ./<builder_folder>/ /opt/app-root/
