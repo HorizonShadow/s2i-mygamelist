@@ -26,3 +26,5 @@ echo "---> Building application from source..."
 # TODO: Add build steps for your application, eg npm install, bundle install, pip install, etc.
 bundle install
 yarn install
+rake assets:precompile
+chown -R 1001:0 /opt/app-root && chmod -R 777 /opt/app-root
